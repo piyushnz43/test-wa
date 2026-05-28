@@ -5,6 +5,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import * as dotenv from 'dotenv';
 import { handleIncomingMessage } from './handler/messageHandler';
+import './scheduler/cron';
 
 dotenv.config();
 

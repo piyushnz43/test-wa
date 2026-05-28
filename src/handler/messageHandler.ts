@@ -6,7 +6,7 @@ dotenv.config();
 
 const userSessions: Record<string, string[]> = {};
 
-async function sendWhatsAppReply(to: string, text: string) {
+export async function sendWhatsAppReply(to: string, text: string) {
     const token = process.env.META_ACCESS_TOKEN;
     const phoneId = process.env.META_PHONE_NUMBER_ID;
 
@@ -45,12 +45,16 @@ export async function handleIncomingMessage(from: string, body: string, io: any)
         if (aiResult.action === 'create_collection') {
             await ensureCollectionExists(aiResult.collection);
             await sendWhatsAppReply(from, aiResult.reply || `Done! Nayi sheet '${aiResult.collection}' ban gayi hai.`);
-            io.emit('new_message', { type: 'system', text: `Created collection: ${aiResult.collection}` });
+            if (io) io.emit('new_message', { type: 'system', text: `Created collection: ${aiResult.collection}` });
 
         } else if (aiResult.action === 'insert_record') {
+            // Inject phone number for cron job routing
+            if (!aiResult.data) aiResult.data = {};
+            aiResult.data.__phone_number = from;
+
             await insertRecord(aiResult.collection, aiResult.data);
             await sendWhatsAppReply(from, aiResult.reply || `Done! Data '${aiResult.collection}' me save ho gaya.`);
-            io.emit('new_message', { type: 'system', text: `Inserted into ${aiResult.collection}: ${JSON.stringify(aiResult.data)}` });
+            if (io) io.emit('new_message', { type: 'system', text: `Inserted into ${aiResult.collection}: ${JSON.stringify(aiResult.data)}` });
 
         } else if (aiResult.action === 'query') {
             // AI wants to query database to answer a question
