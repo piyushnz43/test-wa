@@ -42,7 +42,7 @@ export async function analyzeMessage(message: string, history: string = "", quer
         }
         
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-1.5-flash',
             contents: prompt,
             config: {
                 systemInstruction: SYSTEM_PROMPT,
