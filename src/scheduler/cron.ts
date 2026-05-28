@@ -44,11 +44,10 @@ if (supabaseUrl && supabaseKey) {
                             const message = `🌌 *[Aero Temporal Alert]*\n⏰ Matrix Time Reached!\n\n⚙️ *Task:* ${task}`;
                             await sendWhatsAppReply(phone, message);
                             
-                            // Mark as completed
-                            const updatedData = { ...record.data, __status: 'completed' };
+                            // Delete the record completely instead of marking it completed
                             await supabase
                                 .from('records')
-                                .update({ data: updatedData })
+                                .delete()
                                 .eq('id', record.id);
                                 
                             console.log(`Reminder sent to ${phone} for task: ${task}`);

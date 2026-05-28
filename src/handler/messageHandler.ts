@@ -1,5 +1,5 @@
 import { analyzeMessage } from '../ai/groq';
-import { ensureCollectionExists, insertRecord, fetchCollectionRecords } from '../db/supabase';
+import { ensureCollectionExists, insertRecord, fetchCollectionRecords, deleteRecord } from '../db/supabase';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -57,11 +57,19 @@ export async function handleIncomingMessage(from: string, body: string, io: any)
             if (io) io.emit('new_message', { type: 'system', text: `Inserted into ${aiResult.collection}: ${JSON.stringify(aiResult.data)}` });
 
         } else if (aiResult.action === 'query') {
-            // AI wants to query database to answer a question
-            const records = await fetchCollectionRecords(aiResult.collection);
-            // Re-run AI with the records so it can formulate an answer
+            // AI wants to query database to answer a question or verify identity
+            const records = await fetchCollectionRecords(aiResult.collection, aiResult.filter);
+            // Re-run AI with the records so it can formulate an answer or ask for clarification
             const finalAnswer = await analyzeMessage(body, history, records);
             await sendWhatsAppReply(from, finalAnswer.reply || "Ye lijiye aapki details.");
+
+        } else if (aiResult.action === 'delete_record') {
+            const deletedData = await deleteRecord(aiResult.collection, aiResult.condition);
+            if (deletedData && deletedData.length > 0) {
+                await sendWhatsAppReply(from, aiResult.reply || `Done! Record '${aiResult.collection}' se delete kar diya gaya hai.`);
+            } else {
+                await sendWhatsAppReply(from, `Mujhe '${aiResult.collection}' me aisi koi entry nahi mili delete karne ke liye. Kripya thoda aur detail me batayen.`);
+            }
 
         } else if (aiResult.action === 'clarify' || aiResult.action === 'error') {
             await sendWhatsAppReply(from, aiResult.reply);

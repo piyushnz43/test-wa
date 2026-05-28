@@ -33,14 +33,21 @@ export async function insertRecord(collectionName: string, recordData: any) {
     return data;
 }
 
-export async function fetchCollectionRecords(collectionName: string) {
+export async function fetchCollectionRecords(collectionName: string, filter?: any) {
     const supabase = getSupabaseClient();
-    const { data, error } = await supabase
+    let query = supabase
         .from('records')
         .select('*')
-        .ilike('collection_name', collectionName)
+        .ilike('collection_name', collectionName);
+        
+    if (filter) {
+        query = query.contains('data', filter);
+    }
+        
+    const { data, error } = await query
         .order('created_at', { ascending: false })
         .limit(20);
+        
     if (error) throw error;
     return data;
 }
@@ -50,4 +57,20 @@ export async function fetchAllCollections() {
     const { data, error } = await supabase.from('collections').select('name');
     if (error) throw error;
     return data.map(c => c.name);
+}
+
+export async function deleteRecord(collectionName: string, condition: any) {
+    const supabase = getSupabaseClient();
+    
+    // Convert the condition into a PostgREST filter. 
+    // Supabase has a .contains('data', condition) that checks if JSONB contains the exact key-value pairs.
+    const { data, error } = await supabase
+        .from('records')
+        .delete()
+        .ilike('collection_name', collectionName)
+        .contains('data', condition)
+        .select();
+        
+    if (error) throw error;
+    return data;
 }
