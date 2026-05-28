@@ -64,7 +64,7 @@ app.post('/webhook', async (req, res) => {
                 if (textMessage) {
                     console.log(`Received message from ${senderId}: ${textMessage}`);
                     // Process message
-                    await handleIncomingMessage(senderId, textMessage);
+                    await handleIncomingMessage(senderId, textMessage, io);
                 }
             }
             res.sendStatus(200);
