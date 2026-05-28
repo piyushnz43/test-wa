@@ -1,4 +1,4 @@
-import { analyzeMessage } from '../ai/gemini';
+import { analyzeMessage } from '../ai/groq';
 import { ensureCollectionExists, insertRecord, fetchCollectionRecords } from '../db/supabase';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
